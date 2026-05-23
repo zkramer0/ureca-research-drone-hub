@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URECA Research Hub — Autonomous Multi-Drone Grid Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0C0F1A; --bg-card: #151928; --bg-input: #1C2035; --border: #252A3E;
+  --text: #E2E8F0; --text-sec: #64748B; --accent: #3B82F6; --danger: #EF4444;
+  --green: #10B981; --orange: #F59E0B; --red: #EF4444; --purple: #8B5CF6;
+}
+html, body { height: 100%; }
+body { font-family: 'DM Sans', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+a { color: var(--accent); text-decoration: none; }
+.header { border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-icon { font-size: 22px; line-height: 1; }
+.header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; margin: 0; }
+.header-sub { font-size: 11px; color: var(--text-sec); font-family: 'JetBrains Mono', monospace; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.user-picker { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
+.user-dot { width: 8px; height: 8px; border-radius: 50%; }
+.user-picker select { background: transparent; border: none; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; outline: none; }
+.conn-badge { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.conn-badge.online { background: rgba(16,185,129,.15); color: var(--green); }
+.conn-badge.offline { background: rgba(239,68,68,.15); color: var(--red); }
+.conn-dot { width: 6px; height: 6px; border-radius: 50%; }
+.conn-badge.online .conn-dot { background: var(--green); animation: pulse 2s infinite; }
+.conn-badge.offline .conn-dot { background: var(--red); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+.stats-bar { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--text-sec); }
+.stats-bar .num { font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+.stats-bar .num-green { font-weight: 700; color: var(--green); font-family: 'JetBrains Mono', monospace; }
+.team-dots { display: flex; gap: 4px; margin-left: auto; }
+.team-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; font-weight: 700; }
+.app-body { display: flex; flex: 1; min-height: 0; }
+.sidebar { width: 220px; border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; overflow-y: auto; }
+.sidebar-label { padding: 0 16px 12px; font-size: 10px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
+.sidebar-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; border: none; font-size: 13px; font-weight: 500; text-align: left; background: transparent; color: var(--text-sec); border-left: 2px solid transparent; transition: all .1s; }
+.sidebar-btn:hover { background: var(--bg-input); color: var(--text); }
+.sidebar-btn.active { background: var(--bg-input); color: var(--text); font-weight: 700; border-left-color: var(--accent); }
+.sidebar-btn .icon { font-size: 15px; width: 18px; text-align: center; }
+.sidebar-btn .count { font-size: 11px; font-family: 'JetBrains Mono', monospace; opacity: .6; margin-left: auto; }
+.sidebar-btn .selected-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-left: 4px; }
+.main { flex: 1; padding: 24px; overflow-y: auto; }
+.cat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.cat-title { font-size: 20px; font-weight: 700; margin: 0; }
+.cat-desc { font-size: 13px; color: var(--text-sec); margin-top: 4px; }
+.cat-actions { display: flex; gap: 8px; align-items: center; }
+.view-toggle { display: flex; gap: 2px; background: var(--bg-input); border-radius: 8px; padding: 2px; border: 1px solid var(--border); }
+.pill { padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; background: transparent; color: var(--text-sec); transition: all .15s; }
+.pill.active { background: var(--accent); color: #fff; }
+.btn-add { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.search-input { width: 100%; max-width: 320px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text); font-size: 13px; margin-bottom: 16px; outline: none; }
+.search-input:focus { border-color: var(--accent); }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.comp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all .2s; position: relative; }
+.comp-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.comp-card .new-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-top h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin: 0; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; letter-spacing: .3px; }
+.card-model { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; }
+.card-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-bottom: 10px; font-size: 11px; }
+.card-specs .spec-label { color: var(--text-sec); }
+.card-specs .spec-val { color: var(--text); font-weight: 500; }
+.card-notes { font-size: 12px; color: var(--text-sec); margin-bottom: 10px; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 8px; }
+.card-link { font-size: 11px; color: var(--accent); display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.card-author { display: flex; align-items: center; gap: 6px; }
+.author-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; font-weight: 700; }
+.card-author span { font-size: 11px; color: var(--text-sec); }
+.vote-btn { border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: all .15s; }
+.vote-btn.voted { background: var(--accent); border: 1px solid var(--accent); color: #fff; }
+.vote-btn.unvoted { background: transparent; border: 1px solid var(--border); color: var(--text-sec); }
+.compare-wrap { background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border); overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.compare-table th { padding: 10px 12px; border-bottom: 2px solid var(--border); font-weight: 700; }
+.compare-table th:first-child { text-align: left; color: var(--text-sec); font-size: 11px; text-transform: uppercase; }
+.compare-table th:not(:first-child) { text-align: center; color: var(--text); }
+.compare-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.compare-table td:first-child { font-weight: 600; color: var(--text-sec); }
+.compare-table td:not(:first-child) { text-align: center; color: var(--text); }
+.compare-table tr:nth-child(even) { background: rgba(255,255,255,.02); }
+.activity-wrap { background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.activity-item { padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 700; flex-shrink: 0; }
+.activity-text { flex: 1; min-width: 0; }
+.activity-text .main-line { font-size: 12px; }
+.activity-text .sub-line { font-size: 11px; color: var(--text-sec); }
+.empty { text-align: center; padding: 60px 24px; color: var(--text-sec); }
+.empty .icon { font-size: 36px; margin-bottom: 12px; }
+.empty .title { font-size: 14px; }
+.empty .hint { font-size: 12px; margin-top: 4px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-box { background: var(--bg-card); border-radius: 12px; width: 100%; max-width: 540px; max-height: 85vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; font-weight: 700; margin: 0; }
+.modal-close { background: none; border: none; color: var(--text-sec); font-size: 20px; cursor: pointer; line-height: 1; }
+.modal-body { padding: 22px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.form-group { margin-bottom: 10px; }
+.form-label { display: block; font-size: 11px; font-weight: 600; color: var(--text-sec); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text); font-size: 13px; outline: none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-actions { display: flex; gap: 10px; margin-top: 8px; }
+.btn-save { flex: 1; padding: 10px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; }
+.btn-delete { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--danger); background: transparent; color: var(--danger); font-weight: 600; font-size: 13px; }
+.status-researching { border-left: 3px solid #6B7280; }
+.status-candidate { border-left: 3px solid #3B82F6; }
+.status-selected { border-left: 3px solid #10B981; }
+.status-rejected { border-left: 3px solid #EF4444; }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .app-body { flex-direction: column; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .header { padding: 12px 16px; }
+  .main { padding: 16px; }
+  .mobile-nav { display: flex !important; }
+}
+.mobile-nav { display: none; padding: 8px; border-bottom: 1px solid var(--border); overflow-x: auto; gap: 4px; }
+.mobile-nav button { white-space: nowrap; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-sec); font-size: 11px; font-weight: 600; }
+.mobile-nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn .25s ease; }
+
+/* Setup banner */
+.setup-banner { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--orange); border-radius: 12px; padding: 24px; margin: 24px; }
+.setup-banner h2 { color: var(--orange); font-size: 18px; margin-bottom: 12px; }
+.setup-banner p { font-size: 13px; line-height: 1.7; color: var(--text-sec); margin-bottom: 8px; }
+.setup-banner code { background: rgba(245,158,11,.1); color: var(--orange); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.setup-banner ol { padding-left: 20px; font-size: 13px; color: var(--text); line-height: 2; }
+.setup-banner .warning { color: var(--red); font-weight: 600; font-size: 12px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <span class="header-icon">⬡</span>
+    <div>
+      <h1>URECA Research Hub</h1>
+      <div class="header-sub">Autonomous Multi-Drone Grid Monitoring</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="conn-badge offline" id="conn-badge"><span class="conn-dot"></span><span id="conn-text">Connecting...</span></div>
+    <div class="user-picker">
+      <span class="user-dot" id="user-dot"></span>
+      <select id="user-select"></select>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar" id="stats-bar"></div>
+<div class="mobile-nav" id="mobile-nav"></div>
+
+<div class="app-body">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="main-content"></main>
+</div>
+
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Component</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FIREBASE SDK (v9 compat mode — loaded from CDN, no install)
+     ═══════════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  FIREBASE CONFIG — FILL THIS IN WITH YOUR PROJECT'S VALUES      ║
+// ║                                                                  ║
+// ║  1. Go to https://console.firebase.google.com                    ║
+// ║  2. Create a new project (or use an existing one)                ║
+// ║  3. Go to Project Settings > General > Your apps > Web app       ║
+// ║  4. Copy the config values below                                 ║
+// ║  5. Go to Realtime Database > Create Database > Start in         ║
+// ║     TEST MODE (this lets all 4 team members read/write)          ║
+// ║                                                                  ║
+// ║  IMPORTANT: "Test mode" security rules expire after 30 days.     ║
+// ║  For a 10-week project, update the rules to extend the date.     ║
+// ╚══════════════════════════════════════════════════════════════════╝
+const firebaseConfig = {
+  apiKey:            "AIzaSyDhOkFBidPnPvs9_d1A6AF-wsuWcv8e00Y",
+  authDomain:        "ureca-research-af19f.firebaseapp.com",
+  databaseURL:       "https://ureca-research-af19f-default-rtdb.firebaseio.com",
+  projectId:         "ureca-research-af19f",
+  storageBucket:     "ureca-research-af19f.firebasestorage.app",
+  messagingSenderId: "832997046952",
+  appId:             "1:832997046952:web:1f52d378013ef67297209d",
+};
+// ─── Detect if config is filled in ───
+const FIREBASE_CONFIGURED = firebaseConfig.apiKey !== "" && firebaseConfig.databaseURL !== "";
+
+let db = null;
+let dbRef = null;
+
+if (FIREBASE_CONFIGURED) {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  dbRef = db.ref("ureca-research/items");
+}
+
+// ─── Data ───
+const TEAM = [
+  { id: "zk", name: "Zachary K.", role: "Systems Lead", color: "#3B82F6" },
+  { id: "as", name: "Asif S.", role: "Flight Engineer", color: "#F59E0B" },
+  { id: "rm", name: "Robert M.", role: "Software Engineer", color: "#10B981" },
+  { id: "fu", name: "Farad U.", role: "Test Engineer", color: "#EF4444" },
+];
+
+const CATEGORIES = [
+  { id: "fc", name: "Flight Controllers", icon: "⬡", desc: "ArduPilot/PX4-compatible MCUs", fields: ["Processor", "Sensors", "UART Ports", "Weight", "Price"] },
+  { id: "cc", name: "Companion Computers", icon: "◧", desc: "SBCs for onboard processing", fields: ["CPU", "RAM", "GPIO/Serial", "Power Draw", "Price"] },
+  { id: "gps", name: "GPS Modules", icon: "◎", desc: "GPS + magnetometer modules", fields: ["Constellation", "Accuracy", "Update Rate", "Weight", "Price"] },
+  { id: "mot", name: "Motors & ESCs", icon: "⟳", desc: "Brushless motors and ESCs", fields: ["KV Rating", "Max Thrust", "ESC Amps", "Weight (motor)", "Price (set)"] },
+  { id: "frm", name: "Frames", icon: "⬜", desc: "Quadcopter airframes", fields: ["Size (mm)", "Material", "Weight", "Max Payload", "Price"] },
+  { id: "bat", name: "Batteries", icon: "▮", desc: "LiPo packs for flight", fields: ["Capacity (mAh)", "Voltage/Cells", "C-Rating", "Weight", "Price"] },
+  { id: "cam", name: "Cameras", icon: "◉", desc: "Visible-spectrum imaging", fields: ["Resolution", "Interface", "Trigger Mode", "Weight", "Price"] },
+  { id: "thm", name: "Thermal Sensors", icon: "▦", desc: "LWIR / thermal imaging", fields: ["Resolution", "Temp Range", "Interface", "Weight", "Price"] },
+  { id: "tel", name: "Telemetry Radios", icon: "〰", desc: "Air/ground data links", fields: ["Frequency", "Range", "Bandwidth", "Weight", "Price"] },
+];
+
+const STATUS_COLORS = { Researching: "#6B7280", Candidate: "#3B82F6", Selected: "#10B981", Rejected: "#EF4444" };
+const STATUS_OPTS = ["Researching", "Candidate", "Selected", "Rejected"];
+
+let state = {
+  items: [],
+  currentUser: localStorage.getItem("ureca-user") || "zk",
+  activeCategory: null,
+  view: "activity",
+  search: "",
+  connected: false,
+};
+
+// ─── Firebase Persistence ───
+function saveData() {
+  localStorage.setItem("ureca-user", state.currentUser);
+  if (FIREBASE_CONFIGURED && dbRef) {
+    dbRef.set(state.items).catch(err => console.error("Firebase write error:", err));
+  }
+}
+
+function initFirebaseListener() {
+  if (!FIREBASE_CONFIGURED) return;
+
+  // Connection status
+  const connRef = db.ref(".info/connected");
+  connRef.on("value", snap => {
+    state.connected = snap.val() === true;
+    updateConnBadge();
+  });
+
+  // Real-time data listener — this fires on every remote change
+  dbRef.on("value", snap => {
+    const data = snap.val();
+    state.items = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+    render();
+  }, err => {
+    console.error("Firebase read error:", err);
+  });
+}
+
+function updateConnBadge() {
+  const badge = document.getElementById("conn-badge");
+  const text = document.getElementById("conn-text");
+  if (!FIREBASE_CONFIGURED) {
+    badge.className = "conn-badge offline";
+    text.textContent = "Not Configured";
+    return;
+  }
+  if (state.connected) {
+    badge.className = "conn-badge online";
+    text.textContent = "Synced";
+  } else {
+    badge.className = "conn-badge offline";
+    text.textContent = "Offline";
+  }
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function formatAgo(ts) {
+  const d = Date.now() - ts;
+  if (d < 60000) return "just now";
+  if (d < 3600000) return Math.floor(d / 60000) + "m ago";
+  if (d < 86400000) return Math.floor(d / 3600000) + "h ago";
+  return Math.floor(d / 86400000) + "d ago";
+}
+
+function getTeam(id) { return TEAM.find(t => t.id === id); }
+function getCat(id) { return CATEGORIES.find(c => c.id === id); }
+
+// ─── Render ───
+function render() {
+  renderUserPicker();
+  renderStats();
+  renderSidebar();
+  renderMobileNav();
+  renderMain();
+}
+
+function renderUserPicker() {
+  const sel = document.getElementById("user-select");
+  const dot = document.getElementById("user-dot");
+  sel.innerHTML = TEAM.map(t => `<option value="${t.id}" ${t.id === state.currentUser ? "selected" : ""}>${t.name}</option>`).join("");
+  sel.onchange = () => { state.currentUser = sel.value; localStorage.setItem("ureca-user", sel.value); render(); };
+  dot.style.background = getTeam(state.currentUser).color;
+}
+
+function renderStats() {
+  const bar = document.getElementById("stats-bar");
+  const total = state.items.length;
+  const selected = new Set(state.items.filter(i => i.status === "Selected").map(i => i.category)).size;
+  const teamDots = TEAM.map(t => {
+    const count = state.items.filter(i => i.author === t.id).length;
+    return `<div class="team-dot" title="${t.name}: ${count} entries" style="background:${t.color};opacity:${count > 0 ? 1 : .35}">${t.name[0]}</div>`;
+  }).join("");
+  bar.innerHTML = `
+    <div><span class="num">${total}</span> components researched</div>
+    <div><span class="num-green">${selected}</span> / ${CATEGORIES.length} categories decided</div>
+    <div class="team-dots">${teamDots}</div>
+  `;
+}
+
+function renderSidebar() {
+  const sb = document.getElementById("sidebar");
+  const catCounts = {};
+  state.items.forEach(i => { catCounts[i.category] = (catCounts[i.category] || 0) + 1; });
+  let html = `<div class="sidebar-label">Categories</div>`;
+  html += `<button class="sidebar-btn ${!state.activeCategory && state.view === 'activity' ? 'active' : ''}" onclick="navTo(null,'activity')"><span class="icon">◷</span> Recent Activity</button>`;
+  html += `<div class="sidebar-divider"></div>`;
+  CATEGORIES.forEach(cat => {
+    const active = state.activeCategory === cat.id;
+    const count = catCounts[cat.id] || 0;
+    const hasSel = state.items.some(i => i.category === cat.id && i.status === "Selected");
+    html += `<button class="sidebar-btn ${active ? 'active' : ''}" onclick="navTo('${cat.id}','board')">
+      <span class="icon">${cat.icon}</span><span style="flex:1">${cat.name}</span>
+      ${count ? `<span class="count">${count}</span>` : ''}${hasSel ? '<span class="selected-dot"></span>' : ''}
+    </button>`;
+  });
+  sb.innerHTML = html;
+}
+
+function renderMobileNav() {
+  const nav = document.getElementById("mobile-nav");
+  let html = `<button class="${!state.activeCategory ? 'active' : ''}" onclick="navTo(null,'activity')">Activity</button>`;
+  CATEGORIES.forEach(cat => {
+    html += `<button class="${state.activeCategory === cat.id ? 'active' : ''}" onclick="navTo('${cat.id}','board')">${cat.icon} ${cat.name}</button>`;
+  });
+  nav.innerHTML = html;
+}
+
+function navTo(catId, view) {
+  state.activeCategory = catId;
+  state.view = view || (catId ? "board" : "activity");
+  state.search = "";
+  render();
+}
+
+function renderMain() {
+  const main = document.getElementById("main-content");
+
+  // Show setup guide if Firebase isn't configured
+  if (!FIREBASE_CONFIGURED) {
+    main.innerHTML = `<div class="setup-banner">
+      <h2>⚙ Firebase Setup Required</h2>
+      <p>To enable real-time sync between all team members, connect this app to a Firebase project. It takes about 5 minutes:</p>
+      <ol>
+        <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> and create a new project</li>
+        <li>In the project dashboard, click the <strong>Web</strong> icon (<code>&lt;/&gt;</code>) to register a web app</li>
+        <li>Copy the <code>firebaseConfig</code> values it shows you</li>
+        <li>Go to <strong>Build → Realtime Database → Create Database</strong></li>
+        <li>Choose <strong>Start in test mode</strong> (allows read/write for 30 days)</li>
+        <li>Open this HTML file in a text editor and paste your config values into the <code>firebaseConfig</code> object near the top of the <code>&lt;script&gt;</code> block</li>
+        <li>Save the file, refresh the page, and the badge in the header should turn green ("Synced")</li>
+      </ol>
+      <p class="warning">⚠ Test mode rules expire after 30 days. For your 10-week project, go to Realtime Database → Rules and change the expiration timestamp to cover your full project timeline.</p>
+      <p style="margin-top:12px; color: var(--text);">Once configured, every team member who opens this page will see the same data in real time. When Asif adds a flight controller, it shows up on your screen within 1-2 seconds.</p>
+    </div>`;
+    return;
+  }
+
+  if (!state.activeCategory && state.view === "activity") {
+    main.innerHTML = `<h2 style="margin:0 0 16px;font-size:18px;font-weight:700">Recent Activity</h2><div class="activity-wrap">${renderActivity()}</div>`;
+    return;
+  }
+  if (!state.activeCategory) {
+    main.innerHTML = `<div class="empty"><div class="icon">⬡</div><div class="title" style="font-size:16px;font-weight:600;color:var(--text)">Select a category to begin</div><div class="hint">Research and compare components for each subsystem.</div></div>`;
+    return;
+  }
+
+  const cat = getCat(state.activeCategory);
+  const filtered = state.items.filter(i => {
+    if (i.category !== state.activeCategory) return false;
+    if (state.search) {
+      const s = state.search.toLowerCase();
+      return (i.name||"").toLowerCase().includes(s) || (i.model||"").toLowerCase().includes(s) || (i.notes||"").toLowerCase().includes(s);
+    }
+    return true;
+  });
+
+  let html = `<div class="cat-header"><div>
+    <h2 class="cat-title">${cat.icon} ${cat.name}</h2>
+    <div class="cat-desc">${cat.desc}</div></div>
+    <div class="cat-actions">
+      <div class="view-toggle">
+        <button class="pill ${state.view==='board'?'active':''}" onclick="switchView('board')">Board</button>
+        <button class="pill ${state.view==='compare'?'active':''}" onclick="switchView('compare')">Compare</button>
+      </div>
+      <button class="btn-add" onclick="openAdd()">+ Add Component</button>
+    </div></div>`;
+
+  if (state.view === "board") {
+    html += `<input class="search-input" placeholder="Search components..." value="${state.search}" oninput="onSearch(this.value)">`;
+    if (filtered.length === 0) {
+      html += `<div class="empty"><div class="icon">${cat.icon}</div><div class="title">No components added yet.</div><div class="hint">Click "+ Add Component" to start researching.</div></div>`;
+    } else {
+      html += `<div class="cards-grid">${filtered.sort((a,b)=>(b.votes?.length||0)-(a.votes?.length||0)).map(renderCard).join("")}</div>`;
+    }
+  } else {
+    html += `<div class="compare-wrap">${renderCompare()}</div>`;
+  }
+  main.innerHTML = html;
+}
+
+function renderCard(item) {
+  const cat = getCat(item.category);
+  const author = getTeam(item.author);
+  const votes = item.votes || [];
+  const hasVoted = votes.includes(state.currentUser);
+  const isNew = (Date.now() - (item.updatedAt || item.createdAt || 0)) < 3600000;
+  const statusClass = "status-" + (item.status||"researching").toLowerCase();
+  let specsHtml = "";
+  cat.fields.forEach((f, i) => { const val = item.specs?.[i]; if (val) specsHtml += `<div><span class="spec-label">${f}:</span> <span class="spec-val">${esc(val)}</span></div>`; });
+  const notes = item.notes ? (item.notes.length > 120 ? esc(item.notes.slice(0,120))+"…" : esc(item.notes)) : "";
+  return `<div class="comp-card ${statusClass} fade-in" onclick="openEdit('${item.id}')">
+    ${isNew ? '<div class="new-dot"></div>' : ''}
+    <div class="card-top"><h4>${esc(item.name||"Untitled")}</h4><span class="badge" style="background:${STATUS_COLORS[item.status]}">${item.status}</span></div>
+    ${item.model ? `<div class="card-model">${esc(item.model)}</div>` : ''}
+    ${specsHtml ? `<div class="card-specs">${specsHtml}</div>` : ''}
+    ${notes ? `<div class="card-notes">${notes}</div>` : ''}
+    ${item.link ? `<a class="card-link" href="${esc(item.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Source Link</a>` : ''}
+    <div class="card-footer">
+      <div class="card-author">${author ? `<div class="author-avatar" style="background:${author.color}">${author.name[0]}</div>` : ''}<span>${author?.name||"Unknown"}</span></div>
+      <button class="vote-btn ${hasVoted?'voted':'unvoted'}" onclick="event.stopPropagation();toggleVote('${item.id}')">▲ ${votes.length}</button>
+    </div></div>`;
+}
+
+function renderCompare() {
+  const cat = getCat(state.activeCategory);
+  const candidates = state.items.filter(i => i.category === state.activeCategory && i.status !== "Rejected");
+  if (candidates.length < 2) return `<div style="padding:24px;text-align:center;color:var(--text-sec);font-size:13px">Add at least 2 non-rejected components to compare.</div>`;
+  let header = `<th>Spec</th>` + candidates.map(c => `<th>${esc(c.name)}<br><span class="badge" style="background:${STATUS_COLORS[c.status]};margin-top:4px">${c.status}</span></th>`).join("");
+  const rows = ["Model", ...cat.fields, "Votes"];
+  let body = rows.map((field, fi) => {
+    let cells = `<td>${field}</td>`;
+    candidates.forEach(c => {
+      let val;
+      if (field==="Model") val = c.model||"—"; else if (field==="Votes") val = `▲ ${(c.votes||[]).length}`; else val = c.specs?.[fi-1]||"—";
+      cells += `<td>${esc(val)}</td>`;
+    });
+    return `<tr>${cells}</tr>`;
+  }).join("");
+  return `<table class="compare-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function renderActivity() {
+  const recent = [...state.items].sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)).slice(0,15);
+  if (!recent.length) return `<div style="padding:24px;text-align:center;color:var(--text-sec);font-size:13px">No activity yet. Select a category and start adding components!</div>`;
+  return recent.map(item => {
+    const author = getTeam(item.author); const cat = getCat(item.category);
+    const ago = formatAgo(item.updatedAt||item.createdAt||0);
+    const action = (item.updatedAt||0) > (item.createdAt||0) ? "updated" : "added";
+    return `<div class="activity-item">
+      <div class="activity-avatar" style="background:${author?.color||'#666'}">${author?.name?.[0]||'?'}</div>
+      <div class="activity-text"><div class="main-line"><strong>${author?.name||'Unknown'}</strong> ${action} <strong>${esc(item.name)}</strong></div>
+      <div class="sub-line">${cat?.name||''} · ${ago}</div></div>
+      <span class="badge" style="background:${STATUS_COLORS[item.status]}">${item.status}</span></div>`;
+  }).join("");
+}
+
+// ─── Actions ───
+function switchView(v) { state.view = v; render(); }
+function onSearch(v) { state.search = v; renderMain(); }
+
+function toggleVote(itemId) {
+  const item = state.items.find(i => i.id === itemId);
+  if (!item) return;
+  const votes = item.votes || [];
+  item.votes = votes.includes(state.currentUser) ? votes.filter(v => v !== state.currentUser) : [...votes, state.currentUser];
+  item.updatedAt = Date.now();
+  saveData(); render();
+}
+
+function openAdd() {
+  document.getElementById("modal-title").textContent = "Add Component";
+  renderForm(null);
+  document.getElementById("modal").style.display = "flex";
+}
+
+function openEdit(id) {
+  const item = state.items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById("modal-title").textContent = "Edit Component";
+  renderForm(item);
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() { document.getElementById("modal").style.display = "none"; }
+
+function renderForm(item) {
+  const cat = getCat(state.activeCategory);
+  const body = document.getElementById("modal-body");
+  const teamOpts = TEAM.map(t => `<option value="${t.id}" ${(item?.author||state.currentUser)===t.id?'selected':''}>${t.name} (${t.role})</option>`).join("");
+  const statusOpts = STATUS_OPTS.map(s => `<option value="${s}" ${(item?.status||'Researching')===s?'selected':''}>${s}</option>`).join("");
+  let specFields = cat.fields.map((f, i) => `<div class="form-group"><label class="form-label">${f}</label><input class="form-input" id="spec-${i}" value="${esc(item?.specs?.[i]||'')}"></div>`).join("");
+  body.innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Component Name</label><input class="form-input" id="f-name" placeholder="e.g. Pixhawk 6C" value="${esc(item?.name||'')}"></div>
+      <div class="form-group"><label class="form-label">Model / Part Number</label><input class="form-input" id="f-model" placeholder="e.g. HolyBro PH6C" value="${esc(item?.model||'')}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Added By</label><select class="form-select" id="f-author">${teamOpts}</select></div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status">${statusOpts}</select></div>
+    </div>
+    <label class="form-label">Specifications</label>
+    <div class="form-row">${specFields}</div>
+    <div class="form-group"><label class="form-label">Source Link (URL)</label><input class="form-input" id="f-link" placeholder="https://..." value="${esc(item?.link||'')}"></div>
+    <div class="form-group"><label class="form-label">Notes / Rationale</label><textarea class="form-textarea" id="f-notes" placeholder="Why this component? Pros/cons, compatibility notes...">${esc(item?.notes||'')}</textarea></div>
+    <div class="form-actions">
+      <button class="btn-save" onclick="saveForm('${item?.id||''}')">${item?'Save Changes':'Add Component'}</button>
+      ${item ? `<button class="btn-delete" onclick="deleteItem('${item.id}')">Delete</button>` : ''}
+    </div>`;
+}
+
+function saveForm(existingId) {
+  const cat = getCat(state.activeCategory);
+  const specs = cat.fields.map((_,i) => document.getElementById(`spec-${i}`).value.trim());
+  const data = {
+    name: document.getElementById("f-name").value.trim(),
+    model: document.getElementById("f-model").value.trim(),
+    author: document.getElementById("f-author").value,
+    status: document.getElementById("f-status").value,
+    specs,
+    link: document.getElementById("f-link").value.trim(),
+    notes: document.getElementById("f-notes").value.trim(),
+  };
+  if (!data.name) { alert("Component name is required."); return; }
+  const now = Date.now();
+  if (existingId) {
+    const idx = state.items.findIndex(i => i.id === existingId);
+    if (idx >= 0) state.items[idx] = { ...state.items[idx], ...data, updatedAt: now };
+  } else {
+    state.items.push({ ...data, id: genId(), category: state.activeCategory, createdAt: now, updatedAt: now, votes: [] });
+  }
+  saveData(); closeModal(); render();
+}
+
+function deleteItem(id) {
+  if (!confirm("Delete this entry?")) return;
+  state.items = state.items.filter(i => i.id !== id);
+  saveData(); closeModal(); render();
+}
+
+function esc(s) { if (!s) return ""; const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+// ─── Init ───
+updateConnBadge();
+initFirebaseListener();
+render();
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+</script>
+</body>
+</html>
