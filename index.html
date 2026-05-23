@@ -3,592 +3,590 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>URECA Research Hub — Autonomous Multi-Drone Grid Monitoring</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>URECA Research Hub — Drone Grid Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0C0F1A; --bg-card: #151928; --bg-input: #1C2035; --border: #252A3E;
-  --text: #E2E8F0; --text-sec: #64748B; --accent: #3B82F6; --danger: #EF4444;
-  --green: #10B981; --orange: #F59E0B; --red: #EF4444; --purple: #8B5CF6;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;--bg2:#eef0f4;--card:#ffffff;--border:#dce0e8;--border-light:#e8ecf2;
+  --text:#1e2330;--text2:#505870;--text3:#8890a4;
+  --accent:#1b5e8a;--accent-light:#e6f0f8;--accent-dark:#133f5e;--accent-hover:#17506f;
+  --danger:#c0392b;--warn:#d4a017;--green:#1a7a5a;--green-light:#e6f5ef;
+  --blue:#2563eb;--purple:#6d28d9;
+  --shadow:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03);
+  --shadow-md:0 2px 8px rgba(0,0,0,.07);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.1);
+  --radius:8px;
 }
-html, body { height: 100%; }
-body { font-family: 'DM Sans', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
-button { font-family: inherit; cursor: pointer; }
-input, select, textarea { font-family: inherit; }
-a { color: var(--accent); text-decoration: none; }
-.header { border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.header-left { display: flex; align-items: center; gap: 12px; }
-.header-icon { font-size: 22px; line-height: 1; }
-.header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; margin: 0; }
-.header-sub { font-size: 11px; color: var(--text-sec); font-family: 'JetBrains Mono', monospace; }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.user-picker { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
-.user-dot { width: 8px; height: 8px; border-radius: 50%; }
-.user-picker select { background: transparent; border: none; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; outline: none; }
-.conn-badge { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-.conn-badge.online { background: rgba(16,185,129,.15); color: var(--green); }
-.conn-badge.offline { background: rgba(239,68,68,.15); color: var(--red); }
-.conn-dot { width: 6px; height: 6px; border-radius: 50%; }
-.conn-badge.online .conn-dot { background: var(--green); animation: pulse 2s infinite; }
-.conn-badge.offline .conn-dot { background: var(--red); }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-.stats-bar { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--text-sec); }
-.stats-bar .num { font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
-.stats-bar .num-green { font-weight: 700; color: var(--green); font-family: 'JetBrains Mono', monospace; }
-.team-dots { display: flex; gap: 4px; margin-left: auto; }
-.team-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; font-weight: 700; }
-.app-body { display: flex; flex: 1; min-height: 0; }
-.sidebar { width: 220px; border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; overflow-y: auto; }
-.sidebar-label { padding: 0 16px 12px; font-size: 10px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; }
-.sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
-.sidebar-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; border: none; font-size: 13px; font-weight: 500; text-align: left; background: transparent; color: var(--text-sec); border-left: 2px solid transparent; transition: all .1s; }
-.sidebar-btn:hover { background: var(--bg-input); color: var(--text); }
-.sidebar-btn.active { background: var(--bg-input); color: var(--text); font-weight: 700; border-left-color: var(--accent); }
-.sidebar-btn .icon { font-size: 15px; width: 18px; text-align: center; }
-.sidebar-btn .count { font-size: 11px; font-family: 'JetBrains Mono', monospace; opacity: .6; margin-left: auto; }
-.sidebar-btn .selected-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-left: 4px; }
-.main { flex: 1; padding: 24px; overflow-y: auto; }
-.cat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-.cat-title { font-size: 20px; font-weight: 700; margin: 0; }
-.cat-desc { font-size: 13px; color: var(--text-sec); margin-top: 4px; }
-.cat-actions { display: flex; gap: 8px; align-items: center; }
-.view-toggle { display: flex; gap: 2px; background: var(--bg-input); border-radius: 8px; padding: 2px; border: 1px solid var(--border); }
-.pill { padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; background: transparent; color: var(--text-sec); transition: all .15s; }
-.pill.active { background: var(--accent); color: #fff; }
-.btn-add { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-.search-input { width: 100%; max-width: 320px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text); font-size: 13px; margin-bottom: 16px; outline: none; }
-.search-input:focus { border-color: var(--accent); }
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-.comp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all .2s; position: relative; }
-.comp-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.comp-card .new-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
-.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.card-top h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin: 0; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; letter-spacing: .3px; }
-.card-model { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; }
-.card-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-bottom: 10px; font-size: 11px; }
-.card-specs .spec-label { color: var(--text-sec); }
-.card-specs .spec-val { color: var(--text); font-weight: 500; }
-.card-notes { font-size: 12px; color: var(--text-sec); margin-bottom: 10px; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 8px; }
-.card-link { font-size: 11px; color: var(--accent); display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
-.card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
-.card-author { display: flex; align-items: center; gap: 6px; }
-.author-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; font-weight: 700; }
-.card-author span { font-size: 11px; color: var(--text-sec); }
-.vote-btn { border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: all .15s; }
-.vote-btn.voted { background: var(--accent); border: 1px solid var(--accent); color: #fff; }
-.vote-btn.unvoted { background: transparent; border: 1px solid var(--border); color: var(--text-sec); }
-.compare-wrap { background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border); overflow-x: auto; }
-.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.compare-table th { padding: 10px 12px; border-bottom: 2px solid var(--border); font-weight: 700; }
-.compare-table th:first-child { text-align: left; color: var(--text-sec); font-size: 11px; text-transform: uppercase; }
-.compare-table th:not(:first-child) { text-align: center; color: var(--text); }
-.compare-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
-.compare-table td:first-child { font-weight: 600; color: var(--text-sec); }
-.compare-table td:not(:first-child) { text-align: center; color: var(--text); }
-.compare-table tr:nth-child(even) { background: rgba(255,255,255,.02); }
-.activity-wrap { background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
-.activity-item { padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
-.activity-item:last-child { border-bottom: none; }
-.activity-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 700; flex-shrink: 0; }
-.activity-text { flex: 1; min-width: 0; }
-.activity-text .main-line { font-size: 12px; }
-.activity-text .sub-line { font-size: 11px; color: var(--text-sec); }
-.empty { text-align: center; padding: 60px 24px; color: var(--text-sec); }
-.empty .icon { font-size: 36px; margin-bottom: 12px; }
-.empty .title { font-size: 14px; }
-.empty .hint { font-size: 12px; margin-top: 4px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-.modal-box { background: var(--bg-card); border-radius: 12px; width: 100%; max-width: 540px; max-height: 85vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-.modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.modal-header h3 { font-size: 16px; font-weight: 700; margin: 0; }
-.modal-close { background: none; border: none; color: var(--text-sec); font-size: 20px; cursor: pointer; line-height: 1; }
-.modal-body { padding: 22px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
-.form-group { margin-bottom: 10px; }
-.form-label { display: block; font-size: 11px; font-weight: 600; color: var(--text-sec); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
-.form-input, .form-select, .form-textarea { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text); font-size: 13px; outline: none; }
-.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
-.form-textarea { resize: vertical; min-height: 60px; }
-.form-actions { display: flex; gap: 10px; margin-top: 8px; }
-.btn-save { flex: 1; padding: 10px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; }
-.btn-delete { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--danger); background: transparent; color: var(--danger); font-weight: 600; font-size: 13px; }
-.status-researching { border-left: 3px solid #6B7280; }
-.status-candidate { border-left: 3px solid #3B82F6; }
-.status-selected { border-left: 3px solid #10B981; }
-.status-rejected { border-left: 3px solid #EF4444; }
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .app-body { flex-direction: column; }
-  .cards-grid { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .header { padding: 12px 16px; }
-  .main { padding: 16px; }
-  .mobile-nav { display: flex !important; }
-}
-.mobile-nav { display: none; padding: 8px; border-bottom: 1px solid var(--border); overflow-x: auto; gap: 4px; }
-.mobile-nav button { white-space: nowrap; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-sec); font-size: 11px; font-weight: 600; }
-.mobile-nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-.fade-in { animation: fadeIn .25s ease; }
+html,body{height:100%}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
 
-/* Setup banner */
-.setup-banner { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--orange); border-radius: 12px; padding: 24px; margin: 24px; }
-.setup-banner h2 { color: var(--orange); font-size: 18px; margin-bottom: 12px; }
-.setup-banner p { font-size: 13px; line-height: 1.7; color: var(--text-sec); margin-bottom: 8px; }
-.setup-banner code { background: rgba(245,158,11,.1); color: var(--orange); padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-.setup-banner ol { padding-left: 20px; font-size: 13px; color: var(--text); line-height: 2; }
-.setup-banner .warning { color: var(--red); font-weight: 600; font-size: 12px; margin-top: 12px; }
+/* Top Bar */
+.topbar{background:linear-gradient(135deg,#1a2744 0%,#1b3a5c 50%,#1a4060 100%);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-logo{font-size:17px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.topbar-logo svg{width:22px;height:22px}
+.topbar-sub{font-size:11px;opacity:.55;font-family:'IBM Plex Mono',monospace;margin-left:4px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.conn-pill{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.conn-pill.online{background:rgba(26,122,90,.25);color:#6ee7b7}
+.conn-pill.offline{background:rgba(192,57,43,.25);color:#fca5a5}
+.conn-dot{width:6px;height:6px;border-radius:50%}
+.conn-pill.online .conn-dot{background:#6ee7b7;animation:pulse 2s infinite}
+.conn-pill.offline .conn-dot{background:#fca5a5}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.role-select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500;outline:none}
+.role-select option{color:#1e2330;background:#fff}
+
+/* Tabs */
+.tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--card);padding:0 24px}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--text3);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Stats Strip */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--card)}
+.stat-cell{padding:14px 20px;border-right:1px solid var(--border)}
+.stat-cell:last-child{border-right:none}
+.stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.stat-value{font-size:22px;font-weight:700;font-family:'IBM Plex Mono',monospace;margin-top:2px;color:var(--text)}
+
+/* Search Bar */
+.search-strip{padding:10px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--card);flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z' stroke='%238890a4' stroke-width='2' fill='none'/%3E%3C/svg%3E") 10px center no-repeat;color:var(--text);outline:none}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,94,138,.1)}
+.filter-select{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--card);color:var(--text);outline:none}
+.btn-primary{padding:8px 18px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-weight:600;font-size:13px;white-space:nowrap;transition:background .15s}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+
+/* Main Layout */
+.main-grid{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 200px)}
+.main-col{overflow-y:auto;padding:0;background:var(--bg)}
+.side-col{border-left:1px solid var(--border);overflow-y:auto;background:var(--card)}
+
+/* Section Headers */
+.section-hdr{padding:14px 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:5}
+.section-tag{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px}
+.section-title{font-size:15px;font-weight:700;margin-top:2px}
+
+/* Research Cards */
+.card-list{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.rcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:all .15s;box-shadow:var(--shadow)}
+.rcard:hover{box-shadow:var(--shadow-md);border-color:var(--accent)}
+.rcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.rcard-cat{display:inline-block;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;background:var(--accent-light);color:var(--accent)}
+.rcard-title{font-size:15px;font-weight:700;margin:6px 0 4px;line-height:1.3}
+.rcard-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.rcard-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.tag{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;background:var(--bg2);color:var(--text2)}
+.tag.st-researching{background:#fef3c7;color:#92400e}
+.tag.st-candidate{background:#dbeafe;color:#1e40af}
+.tag.st-selected{background:var(--green-light);color:var(--green)}
+.tag.st-rejected{background:#fee2e2;color:var(--danger)}
+.rcard-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-bottom:10px;background:var(--border);border-radius:6px;overflow:hidden}
+.meta-cell{padding:10px 12px;background:var(--bg);font-size:12px}
+.meta-cell-label{color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.meta-cell-val{color:var(--text);font-weight:500}
+.rcard-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border-light);font-size:12px;color:var(--text3)}
+.rcard-actions{display:flex;gap:6px}
+.vote-btn{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;border:1px solid var(--border);background:var(--card);color:var(--text2);transition:all .12s}
+.vote-btn:hover{border-color:var(--accent)}
+.vote-btn.voted{background:var(--accent);border-color:var(--accent);color:#fff}
+.edit-btn{padding:4px 10px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:var(--card);color:var(--text3);transition:all .12s}
+.edit-btn:hover{border-color:var(--text3)}
+.pdf-badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;background:#fef2f2;color:var(--danger);border:1px solid #fecaca}
+
+/* Side panels */
+.side-section{border-bottom:1px solid var(--border)}
+.side-hdr{padding:14px 16px 6px;font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px}
+.side-title{padding:0 16px 10px;font-size:14px;font-weight:700}
+
+/* Activity */
+.activity-item{padding:10px 16px;border-bottom:1px solid var(--border-light);display:flex;gap:8px;align-items:flex-start;font-size:12px}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-text{flex:1;line-height:1.4}
+.act-time{color:var(--text3);font-size:11px;white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+
+/* Compare sidebar */
+.compare-box{margin:6px 16px 14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.compare-header{padding:8px 12px;background:var(--bg2);font-size:11px;font-weight:600;color:var(--text2);display:flex;justify-content:space-between}
+.compare-slot{padding:8px 12px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.compare-slot:last-child{border-bottom:none}
+.compare-slot .name{font-weight:600}
+.compare-slot .remove{color:var(--danger);cursor:pointer;font-size:11px;border:none;background:none}
+.compare-empty{padding:14px;text-align:center;font-size:12px;color:var(--text3)}
+.btn-compare{display:block;margin:0 16px 14px;padding:8px;border:1px solid var(--accent);border-radius:var(--radius);background:var(--accent-light);color:var(--accent);font-weight:600;font-size:12px;text-align:center;width:calc(100% - 32px);transition:all .12s}
+.btn-compare:hover{background:var(--accent);color:#fff}
+
+/* Summary */
+.summary-box{margin:6px 16px 14px;padding:12px;background:var(--bg);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.7}
+.summary-box strong{color:var(--text)}
+
+/* Compare Modal */
+.cmp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.cmp-box{background:var(--card);border-radius:12px;width:100%;max-width:860px;max-height:85vh;overflow:auto;box-shadow:var(--shadow-lg)}
+.cmp-grid{display:grid;gap:0;margin:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cmp-cell{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border-light);border-right:1px solid var(--border-light)}
+.cmp-cell:last-child{border-right:none}
+.cmp-cell.hdr{background:var(--bg2);font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.cmp-cell.label{background:var(--bg);font-weight:600;color:var(--text3);font-size:12px}
+.cmp-cell.best{background:var(--green-light);color:var(--green);font-weight:600}
+.cmp-winner{text-align:center;padding:16px;font-size:13px;color:var(--text2)}
+.cmp-winner strong{color:var(--accent)}
+
+/* Discussion */
+.disc-list{padding:0}
+.disc-topic{border-bottom:1px solid var(--border)}
+.disc-topic-hdr{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;font-weight:600;transition:background .1s}
+.disc-topic-hdr:hover{background:var(--bg)}
+.disc-topic-count{font-size:11px;color:var(--text3);font-weight:500}
+.disc-topic-body{padding:0 16px 12px;display:none}
+.disc-topic.open .disc-topic-body{display:block}
+.disc-msg{padding:8px 0;border-bottom:1px solid var(--border-light);font-size:12px;line-height:1.5}
+.disc-msg:last-child{border-bottom:none}
+.disc-msg-author{font-weight:600;color:var(--accent);font-size:11px}
+.disc-msg-time{font-size:10px;color:var(--text3);margin-left:6px;font-family:'IBM Plex Mono',monospace}
+.disc-msg-text{color:var(--text2);margin-top:2px}
+.disc-input-row{display:flex;gap:6px;margin-top:8px}
+.disc-input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);color:var(--text);outline:none}
+.disc-input:focus{border-color:var(--accent)}
+.disc-send{padding:6px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:600}
+.disc-new-row{padding:10px 16px;display:flex;gap:6px}
+.disc-new-input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);outline:none}
+.disc-new-btn{padding:7px 14px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;font-weight:600}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-box{background:var(--card);border-radius:12px;width:100%;max-width:620px;max-height:90vh;overflow:auto;box-shadow:var(--shadow-lg)}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-hdr h3{font-size:16px;font-weight:700;margin:0}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.modal-body{padding:20px 22px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.form-input,.form-select,.form-textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;outline:none;transition:border .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,94,138,.08)}
+.form-textarea{resize:vertical;min-height:70px}
+.form-actions{display:flex;gap:8px;margin-top:10px}
+.btn-save{flex:1;padding:10px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-weight:700;font-size:13px;transition:background .15s}
+.btn-save:hover{background:var(--accent-hover)}
+.btn-delete{padding:10px 16px;border:1px solid var(--danger);border-radius:var(--radius);background:none;color:var(--danger);font-weight:600;font-size:13px}
+.pdf-upload-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;font-size:12px;color:var(--text3);transition:all .15s;margin-bottom:12px}
+.pdf-upload-area:hover{border-color:var(--accent);background:var(--accent-light)}
+.pdf-upload-area input{display:none}
+.pdf-file-name{font-size:12px;color:var(--accent);font-weight:600;margin-top:4px}
+.other-type-input{margin-top:6px}
+
+/* Setup */
+.setup-banner{margin:40px auto;max-width:640px;background:var(--card);border:2px solid var(--accent);border-radius:12px;padding:32px;box-shadow:var(--shadow-lg)}
+.setup-banner h2{color:var(--accent);font-size:20px;margin-bottom:12px}
+.setup-banner p{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:8px}
+.setup-banner ol{padding-left:20px;font-size:13px;line-height:2.2}
+
+.empty-state{text-align:center;padding:60px 24px;color:var(--text3)}
+.empty-state .icon{font-size:32px;margin-bottom:10px}
+
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}.side-col{border-left:none;border-top:1px solid var(--border)}.stats-strip{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.stats-strip{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.rcard-meta{grid-template-columns:1fr}.tab{padding:10px 14px;font-size:12px}}
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-left">
-    <span class="header-icon">⬡</span>
-    <div>
-      <h1>URECA Research Hub</h1>
-      <div class="header-sub">Autonomous Multi-Drone Grid Monitoring</div>
-    </div>
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><line x1="12" y1="22" x2="12" y2="15.5"/><line x1="22" y1="8.5" x2="12" y2="15.5"/><line x1="2" y1="8.5" x2="12" y2="15.5"/></svg>URECA Research Hub</span>
+    <span class="topbar-sub">Multi-Drone Grid Monitoring</span>
   </div>
-  <div class="header-right">
-    <div class="conn-badge offline" id="conn-badge"><span class="conn-dot"></span><span id="conn-text">Connecting...</span></div>
-    <div class="user-picker">
-      <span class="user-dot" id="user-dot"></span>
-      <select id="user-select"></select>
-    </div>
+  <div class="topbar-right">
+    <div class="conn-pill offline" id="conn-pill"><span class="conn-dot"></span><span id="conn-text">Connecting...</span></div>
+    <select class="role-select" id="role-select"></select>
   </div>
-</header>
+</div>
 
-<div class="stats-bar" id="stats-bar"></div>
-<div class="mobile-nav" id="mobile-nav"></div>
+<div class="tab-bar" id="tab-bar">
+  <button class="tab active" onclick="switchTab('research')">Research Board</button>
+  <button class="tab" onclick="switchTab('discussion')">Discussion</button>
+</div>
 
-<div class="app-body">
-  <nav class="sidebar" id="sidebar"></nav>
-  <main class="main" id="main-content"></main>
+<div id="page-research">
+  <div class="stats-strip" id="stats-strip"></div>
+  <div class="search-strip">
+    <input class="search-input" id="search-input" placeholder="Search components, evidence, sources, notes...">
+    <select class="filter-select" id="filter-cat"><option value="">All components</option></select>
+    <select class="filter-select" id="filter-status"><option value="">All status</option><option value="Researching">Researching</option><option value="Candidate">Candidate</option><option value="Selected">Selected</option><option value="Rejected">Rejected</option></select>
+    <button class="btn-primary" onclick="openAdd()">+ Add Research</button>
+  </div>
+  <div class="main-grid">
+    <div class="main-col" id="main-col"></div>
+    <div class="side-col" id="side-col"></div>
+  </div>
+</div>
+
+<div id="page-discussion" style="display:none">
+  <div class="main-grid" style="min-height:calc(100vh - 100px)">
+    <div class="main-col" id="disc-main"></div>
+    <div class="side-col" id="disc-side"></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal" style="display:none" onclick="closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h3 id="modal-title">Add Component</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
+    <div class="modal-hdr"><h3 id="modal-title">Add Research</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     FIREBASE SDK (v9 compat mode — loaded from CDN, no install)
-     ═══════════════════════════════════════════════════════════════ -->
+<div class="cmp-overlay" id="cmp-overlay" style="display:none" onclick="closeCompare()">
+  <div class="cmp-box" onclick="event.stopPropagation()">
+    <div class="modal-hdr"><h3>Component Comparison</h3><button class="modal-close" onclick="closeCompare()">✕</button></div>
+    <div id="cmp-body"></div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
 <script>
-// ╔══════════════════════════════════════════════════════════════════╗
-// ║  FIREBASE CONFIG — FILL THIS IN WITH YOUR PROJECT'S VALUES      ║
-// ║                                                                  ║
-// ║  1. Go to https://console.firebase.google.com                    ║
-// ║  2. Create a new project (or use an existing one)                ║
-// ║  3. Go to Project Settings > General > Your apps > Web app       ║
-// ║  4. Copy the config values below                                 ║
-// ║  5. Go to Realtime Database > Create Database > Start in         ║
-// ║     TEST MODE (this lets all 4 team members read/write)          ║
-// ║                                                                  ║
-// ║  IMPORTANT: "Test mode" security rules expire after 30 days.     ║
-// ║  For a 10-week project, update the rules to extend the date.     ║
-// ╚══════════════════════════════════════════════════════════════════╝
-const firebaseConfig = {
-  apiKey:            "AIzaSyDhOkFBidPnPvs9_d1A6AF-wsuWcv8e00Y",
-  authDomain:        "ureca-research-af19f.firebaseapp.com",
-  databaseURL:       "https://ureca-research-af19f-default-rtdb.firebaseio.com",
-  projectId:         "ureca-research-af19f",
-  storageBucket:     "ureca-research-af19f.firebasestorage.app",
-  messagingSenderId: "832997046952",
-  appId:             "1:832997046952:web:1f52d378013ef67297209d",
+const firebaseConfig={
+  apiKey:"AIzaSyDhOkFBidPnPvs9_d1A6AF-wsuWcv8e00Y",
+  authDomain:"ureca-research-af19f.firebaseapp.com",
+  databaseURL:"https://ureca-research-af19f-default-rtdb.firebaseio.com",
+  projectId:"ureca-research-af19f",
+  storageBucket:"ureca-research-af19f.firebasestorage.app",
+  messagingSenderId:"832997046952",
+  appId:"1:832997046952:web:1f52d378013ef67297209d",
 };
-// ─── Detect if config is filled in ───
-const FIREBASE_CONFIGURED = firebaseConfig.apiKey !== "" && firebaseConfig.databaseURL !== "";
+const OK=firebaseConfig.apiKey!==""&&firebaseConfig.databaseURL!=="";
+let db=null,dbItems=null,dbRoles=null,dbDisc=null;
+if(OK){firebase.initializeApp(firebaseConfig);db=firebase.database();dbItems=db.ref("v2/items");dbRoles=db.ref("v2/roles");dbDisc=db.ref("v2/discussions")}
 
-let db = null;
-let dbRef = null;
-
-if (FIREBASE_CONFIGURED) {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-  dbRef = db.ref("ureca-research/items");
-}
-
-// ─── Data ───
-const TEAM = [
-  { id: "zk", name: "Zachary K.", role: "Systems Lead", color: "#3B82F6" },
-  { id: "as", name: "Asif S.", role: "Flight Engineer", color: "#F59E0B" },
-  { id: "rm", name: "Robert M.", role: "Software Engineer", color: "#10B981" },
-  { id: "fu", name: "Farad U.", role: "Test Engineer", color: "#EF4444" },
-];
-
-const CATEGORIES = [
-  { id: "fc", name: "Flight Controllers", icon: "⬡", desc: "ArduPilot/PX4-compatible MCUs", fields: ["Processor", "Sensors", "UART Ports", "Weight", "Price"] },
-  { id: "cc", name: "Companion Computers", icon: "◧", desc: "SBCs for onboard processing", fields: ["CPU", "RAM", "GPIO/Serial", "Power Draw", "Price"] },
-  { id: "gps", name: "GPS Modules", icon: "◎", desc: "GPS + magnetometer modules", fields: ["Constellation", "Accuracy", "Update Rate", "Weight", "Price"] },
-  { id: "mot", name: "Motors & ESCs", icon: "⟳", desc: "Brushless motors and ESCs", fields: ["KV Rating", "Max Thrust", "ESC Amps", "Weight (motor)", "Price (set)"] },
-  { id: "frm", name: "Frames", icon: "⬜", desc: "Quadcopter airframes", fields: ["Size (mm)", "Material", "Weight", "Max Payload", "Price"] },
-  { id: "bat", name: "Batteries", icon: "▮", desc: "LiPo packs for flight", fields: ["Capacity (mAh)", "Voltage/Cells", "C-Rating", "Weight", "Price"] },
-  { id: "cam", name: "Cameras", icon: "◉", desc: "Visible-spectrum imaging", fields: ["Resolution", "Interface", "Trigger Mode", "Weight", "Price"] },
-  { id: "thm", name: "Thermal Sensors", icon: "▦", desc: "LWIR / thermal imaging", fields: ["Resolution", "Temp Range", "Interface", "Weight", "Price"] },
-  { id: "tel", name: "Telemetry Radios", icon: "〰", desc: "Air/ground data links", fields: ["Frequency", "Range", "Bandwidth", "Weight", "Price"] },
-];
-
-const STATUS_COLORS = { Researching: "#6B7280", Candidate: "#3B82F6", Selected: "#10B981", Rejected: "#EF4444" };
-const STATUS_OPTS = ["Researching", "Candidate", "Selected", "Rejected"];
-
-let state = {
-  items: [],
-  currentUser: localStorage.getItem("ureca-user") || "zk",
-  activeCategory: null,
-  view: "activity",
-  search: "",
-  connected: false,
+const CATEGORIES=["Flight Controller","Companion Computer","GPS Module","Motors & ESCs","Frame","Battery","Camera","Thermal Sensor","Telemetry Radio","Mission Planning","Ground Station","Software","Safety","Other"];
+const FIELDS={
+  "Flight Controller":["Processor","Weight","Price"],
+  "Companion Computer":["CPU","RAM","GPIO/Serial","Power Draw","Price"],
+  "GPS Module":["Constellation","Accuracy","Update Rate","Weight","Price"],
+  "Motors & ESCs":["KV Rating","Max Thrust","ESC Amps","Weight","Price"],
+  "Frame":["Size (mm)","Material","Weight","Max Payload","Price"],
+  "Battery":["Capacity (mAh)","Voltage/Cells","C-Rating","Weight","Price"],
+  "Camera":["Resolution","Interface","Trigger Mode","Weight","Price"],
+  "Thermal Sensor":["Resolution","Temp Range","Interface","Weight","Price"],
+  "Telemetry Radio":["Frequency","Range","Bandwidth","Weight","Price"],
 };
+const STATUS_OPTS=["Researching","Candidate","Selected","Rejected"];
 
-// ─── Firebase Persistence ───
-function saveData() {
-  localStorage.setItem("ureca-user", state.currentUser);
-  if (FIREBASE_CONFIGURED && dbRef) {
-    dbRef.set(state.items).catch(err => console.error("Firebase write error:", err));
-  }
+let S={items:{},roles:{},disc:{},user:localStorage.getItem("ureca-user")||"",connected:false,search:"",fCat:"",fStat:"",cmpList:[],tab:"research"};
+
+const catSel=document.getElementById("filter-cat");
+CATEGORIES.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;catSel.appendChild(o)});
+
+// ── Firebase storage (object-keyed, not array) ──
+function saveItems(){if(OK&&dbItems)dbItems.set(S.items).catch(e=>console.error(e))}
+function saveRoles(){if(OK&&dbRoles)dbRoles.set(S.roles).catch(e=>console.error(e))}
+function saveDisc(){if(OK&&dbDisc)dbDisc.set(S.disc).catch(e=>console.error(e))}
+
+function init(){
+  if(!OK){updateConn();renderAll();return}
+  db.ref(".info/connected").on("value",s=>{S.connected=s.val()===true;updateConn()});
+  dbItems.on("value",s=>{S.items=s.val()||{};renderAll()});
+  dbRoles.on("value",s=>{S.roles=s.val()||{};renderRoles()});
+  dbDisc.on("value",s=>{S.disc=s.val()||{};if(S.tab==="discussion")renderDisc()});
+}
+function updateConn(){const p=document.getElementById("conn-pill"),t=document.getElementById("conn-text");if(!OK){p.className="conn-pill offline";t.textContent="Not Configured";return}p.className=S.connected?"conn-pill online":"conn-pill offline";t.textContent=S.connected?"Synced":"Offline"}
+
+function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){if(!s)return"";const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function ago(ts){const d=Date.now()-ts;if(d<60000)return"now";if(d<3600000)return Math.floor(d/60000)+"m";if(d<86400000)return Math.floor(d/3600000)+"h";return Math.floor(d/86400000)+"d"}
+function itemsArr(){return Object.values(S.items).filter(Boolean)}
+function getUser(id){return S.roles[id]||{name:"Unknown",role:""}}
+
+// ── Tabs ──
+function switchTab(t){
+  S.tab=t;
+  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab")[t==="research"?0:1].classList.add("active");
+  document.getElementById("page-research").style.display=t==="research"?"":"none";
+  document.getElementById("page-discussion").style.display=t==="discussion"?"":"none";
+  if(t==="discussion")renderDisc();
 }
 
-function initFirebaseListener() {
-  if (!FIREBASE_CONFIGURED) return;
-
-  // Connection status
-  const connRef = db.ref(".info/connected");
-  connRef.on("value", snap => {
-    state.connected = snap.val() === true;
-    updateConnBadge();
-  });
-
-  // Real-time data listener — this fires on every remote change
-  dbRef.on("value", snap => {
-    const data = snap.val();
-    state.items = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-    render();
-  }, err => {
-    console.error("Firebase read error:", err);
-  });
+// ── Roles ──
+function renderRoles(){
+  const sel=document.getElementById("role-select");
+  const roles=Object.entries(S.roles);
+  let h='<option value="">Select your name...</option>';
+  roles.forEach(([id,r])=>{h+=`<option value="${id}" ${S.user===id?'selected':''}>${esc(r.name)} (${esc(r.role)})</option>`});
+  h+='<option value="__add__">+ Add yourself...</option>';
+  sel.innerHTML=h;
+  sel.onchange=()=>{if(sel.value==="__add__"){addSelf();sel.value=S.user;return}S.user=sel.value;localStorage.setItem("ureca-user",sel.value);renderAll()};
+}
+function addSelf(){
+  const n=prompt("Your full name:");if(!n)return;
+  const r=prompt("Your role (e.g. Systems Lead, Flight Engineer):");if(!r)return;
+  const id=gid();S.roles[id]={name:n.trim(),role:r.trim()};S.user=id;localStorage.setItem("ureca-user",id);saveRoles();renderRoles();renderAll();
 }
 
-function updateConnBadge() {
-  const badge = document.getElementById("conn-badge");
-  const text = document.getElementById("conn-text");
-  if (!FIREBASE_CONFIGURED) {
-    badge.className = "conn-badge offline";
-    text.textContent = "Not Configured";
-    return;
-  }
-  if (state.connected) {
-    badge.className = "conn-badge online";
-    text.textContent = "Synced";
-  } else {
-    badge.className = "conn-badge offline";
-    text.textContent = "Offline";
-  }
-}
+// ── Search/Filter ──
+document.getElementById("search-input").oninput=e=>{S.search=e.target.value;renderMain()};
+document.getElementById("filter-cat").onchange=e=>{S.fCat=e.target.value;renderMain()};
+document.getElementById("filter-status").onchange=e=>{S.fStat=e.target.value;renderMain()};
 
-function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-
-function formatAgo(ts) {
-  const d = Date.now() - ts;
-  if (d < 60000) return "just now";
-  if (d < 3600000) return Math.floor(d / 60000) + "m ago";
-  if (d < 86400000) return Math.floor(d / 3600000) + "h ago";
-  return Math.floor(d / 86400000) + "d ago";
-}
-
-function getTeam(id) { return TEAM.find(t => t.id === id); }
-function getCat(id) { return CATEGORIES.find(c => c.id === id); }
-
-// ─── Render ───
-function render() {
-  renderUserPicker();
-  renderStats();
-  renderSidebar();
-  renderMobileNav();
-  renderMain();
-}
-
-function renderUserPicker() {
-  const sel = document.getElementById("user-select");
-  const dot = document.getElementById("user-dot");
-  sel.innerHTML = TEAM.map(t => `<option value="${t.id}" ${t.id === state.currentUser ? "selected" : ""}>${t.name}</option>`).join("");
-  sel.onchange = () => { state.currentUser = sel.value; localStorage.setItem("ureca-user", sel.value); render(); };
-  dot.style.background = getTeam(state.currentUser).color;
-}
-
-function renderStats() {
-  const bar = document.getElementById("stats-bar");
-  const total = state.items.length;
-  const selected = new Set(state.items.filter(i => i.status === "Selected").map(i => i.category)).size;
-  const teamDots = TEAM.map(t => {
-    const count = state.items.filter(i => i.author === t.id).length;
-    return `<div class="team-dot" title="${t.name}: ${count} entries" style="background:${t.color};opacity:${count > 0 ? 1 : .35}">${t.name[0]}</div>`;
-  }).join("");
-  bar.innerHTML = `
-    <div><span class="num">${total}</span> components researched</div>
-    <div><span class="num-green">${selected}</span> / ${CATEGORIES.length} categories decided</div>
-    <div class="team-dots">${teamDots}</div>
-  `;
-}
-
-function renderSidebar() {
-  const sb = document.getElementById("sidebar");
-  const catCounts = {};
-  state.items.forEach(i => { catCounts[i.category] = (catCounts[i.category] || 0) + 1; });
-  let html = `<div class="sidebar-label">Categories</div>`;
-  html += `<button class="sidebar-btn ${!state.activeCategory && state.view === 'activity' ? 'active' : ''}" onclick="navTo(null,'activity')"><span class="icon">◷</span> Recent Activity</button>`;
-  html += `<div class="sidebar-divider"></div>`;
-  CATEGORIES.forEach(cat => {
-    const active = state.activeCategory === cat.id;
-    const count = catCounts[cat.id] || 0;
-    const hasSel = state.items.some(i => i.category === cat.id && i.status === "Selected");
-    html += `<button class="sidebar-btn ${active ? 'active' : ''}" onclick="navTo('${cat.id}','board')">
-      <span class="icon">${cat.icon}</span><span style="flex:1">${cat.name}</span>
-      ${count ? `<span class="count">${count}</span>` : ''}${hasSel ? '<span class="selected-dot"></span>' : ''}
-    </button>`;
-  });
-  sb.innerHTML = html;
-}
-
-function renderMobileNav() {
-  const nav = document.getElementById("mobile-nav");
-  let html = `<button class="${!state.activeCategory ? 'active' : ''}" onclick="navTo(null,'activity')">Activity</button>`;
-  CATEGORIES.forEach(cat => {
-    html += `<button class="${state.activeCategory === cat.id ? 'active' : ''}" onclick="navTo('${cat.id}','board')">${cat.icon} ${cat.name}</button>`;
-  });
-  nav.innerHTML = html;
-}
-
-function navTo(catId, view) {
-  state.activeCategory = catId;
-  state.view = view || (catId ? "board" : "activity");
-  state.search = "";
-  render();
-}
-
-function renderMain() {
-  const main = document.getElementById("main-content");
-
-  // Show setup guide if Firebase isn't configured
-  if (!FIREBASE_CONFIGURED) {
-    main.innerHTML = `<div class="setup-banner">
-      <h2>⚙ Firebase Setup Required</h2>
-      <p>To enable real-time sync between all team members, connect this app to a Firebase project. It takes about 5 minutes:</p>
-      <ol>
-        <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> and create a new project</li>
-        <li>In the project dashboard, click the <strong>Web</strong> icon (<code>&lt;/&gt;</code>) to register a web app</li>
-        <li>Copy the <code>firebaseConfig</code> values it shows you</li>
-        <li>Go to <strong>Build → Realtime Database → Create Database</strong></li>
-        <li>Choose <strong>Start in test mode</strong> (allows read/write for 30 days)</li>
-        <li>Open this HTML file in a text editor and paste your config values into the <code>firebaseConfig</code> object near the top of the <code>&lt;script&gt;</code> block</li>
-        <li>Save the file, refresh the page, and the badge in the header should turn green ("Synced")</li>
-      </ol>
-      <p class="warning">⚠ Test mode rules expire after 30 days. For your 10-week project, go to Realtime Database → Rules and change the expiration timestamp to cover your full project timeline.</p>
-      <p style="margin-top:12px; color: var(--text);">Once configured, every team member who opens this page will see the same data in real time. When Asif adds a flight controller, it shows up on your screen within 1-2 seconds.</p>
-    </div>`;
-    return;
-  }
-
-  if (!state.activeCategory && state.view === "activity") {
-    main.innerHTML = `<h2 style="margin:0 0 16px;font-size:18px;font-weight:700">Recent Activity</h2><div class="activity-wrap">${renderActivity()}</div>`;
-    return;
-  }
-  if (!state.activeCategory) {
-    main.innerHTML = `<div class="empty"><div class="icon">⬡</div><div class="title" style="font-size:16px;font-weight:600;color:var(--text)">Select a category to begin</div><div class="hint">Research and compare components for each subsystem.</div></div>`;
-    return;
-  }
-
-  const cat = getCat(state.activeCategory);
-  const filtered = state.items.filter(i => {
-    if (i.category !== state.activeCategory) return false;
-    if (state.search) {
-      const s = state.search.toLowerCase();
-      return (i.name||"").toLowerCase().includes(s) || (i.model||"").toLowerCase().includes(s) || (i.notes||"").toLowerCase().includes(s);
-    }
+function filtered(){
+  return itemsArr().filter(i=>{
+    if(S.fCat&&i.category!==S.fCat)return false;
+    if(S.fStat&&i.status!==S.fStat)return false;
+    if(S.search){const s=S.search.toLowerCase();return[i.name,i.model,i.notes,i.category,i.pros,i.cons,i.customType].some(x=>(x||"").toLowerCase().includes(s))}
     return true;
   });
+}
 
-  let html = `<div class="cat-header"><div>
-    <h2 class="cat-title">${cat.icon} ${cat.name}</h2>
-    <div class="cat-desc">${cat.desc}</div></div>
-    <div class="cat-actions">
-      <div class="view-toggle">
-        <button class="pill ${state.view==='board'?'active':''}" onclick="switchView('board')">Board</button>
-        <button class="pill ${state.view==='compare'?'active':''}" onclick="switchView('compare')">Compare</button>
-      </div>
-      <button class="btn-add" onclick="openAdd()">+ Add Component</button>
-    </div></div>`;
+// ── Render ──
+function renderAll(){renderStats();renderMain();renderSide()}
+function renderStats(){
+  const bar=document.getElementById("stats-strip");const now=new Date();const arr=itemsArr();
+  const total=arr.length;const rev=arr.filter(i=>i.status==="Researching").length;
+  const last=arr.reduce((m,i)=>Math.max(m,i.updatedAt||i.createdAt||0),0);
+  bar.innerHTML=`<div class="stat-cell"><div class="stat-label">Live project time</div><div class="stat-value">${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div></div>
+  <div class="stat-cell"><div class="stat-label">Research entries</div><div class="stat-value">${total}</div></div>
+  <div class="stat-cell"><div class="stat-label">Needs review</div><div class="stat-value">${rev}</div></div>
+  <div class="stat-cell"><div class="stat-label">Last update</div><div class="stat-value">${last?ago(last)+'  ago':'—'}</div></div>`;
+}
+setInterval(renderStats,1000);
 
-  if (state.view === "board") {
-    html += `<input class="search-input" placeholder="Search components..." value="${state.search}" oninput="onSearch(this.value)">`;
-    if (filtered.length === 0) {
-      html += `<div class="empty"><div class="icon">${cat.icon}</div><div class="title">No components added yet.</div><div class="hint">Click "+ Add Component" to start researching.</div></div>`;
-    } else {
-      html += `<div class="cards-grid">${filtered.sort((a,b)=>(b.votes?.length||0)-(a.votes?.length||0)).map(renderCard).join("")}</div>`;
-    }
-  } else {
-    html += `<div class="compare-wrap">${renderCompare()}</div>`;
+function renderMain(){
+  const main=document.getElementById("main-col");
+  if(!OK){main.innerHTML=`<div class="setup-banner"><h2>⚙ Firebase Setup Required</h2><p>Paste your Firebase config into the HTML file.</p><ol><li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li><li>Create project → Register web app → Copy config</li><li>Enable Realtime Database in test mode</li><li>Paste config into this file</li></ol></div>`;return}
+  const items=filtered().sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+  let h=`<div class="section-hdr"><div><div class="section-tag">Team Workspace</div><div class="section-title">Component Research Board</div></div><span style="font-size:12px;color:var(--text3)">${items.length} entries</span></div>`;
+  if(!items.length) h+=`<div class="empty-state"><div class="icon">⬡</div><div style="font-size:15px;font-weight:600;color:var(--text)">No research entries yet</div><div style="font-size:13px;margin-top:4px">Click "+ Add Research" to start.</div></div>`;
+  else h+=`<div class="card-list">${items.map(renderCard).join("")}</div>`;
+  main.innerHTML=h;
+}
+
+function renderCard(item){
+  const u=getUser(item.author);const votes=item.votes||[];const voted=votes.includes(S.user);
+  const inCmp=S.cmpList.includes(item.id);
+  const fields=FIELDS[item.category]||[];
+  const catLabel=item.category==="Other"&&item.customType?item.customType:item.category;
+  const stClass="st-"+(item.status||"researching").toLowerCase();
+
+  let specs="";
+  if(fields.length&&item.specs&&item.specs.some(x=>x)){
+    specs=`<div class="rcard-meta">${fields.map((f,i)=>item.specs[i]?`<div class="meta-cell"><div class="meta-cell-label">${f}</div><div class="meta-cell-val">${esc(item.specs[i])}</div></div>`:"").join("")}</div>`;
   }
-  main.innerHTML = html;
+  let pcc="";
+  if(item.pros||item.cons||item.evidence){
+    pcc=`<div class="rcard-meta">`;
+    if(item.pros)pcc+=`<div class="meta-cell"><div class="meta-cell-label">Pros</div><div class="meta-cell-val">${esc(item.pros)}</div></div>`;
+    if(item.cons)pcc+=`<div class="meta-cell"><div class="meta-cell-label">Cons / Risks</div><div class="meta-cell-val">${esc(item.cons)}</div></div>`;
+    if(item.evidence)pcc+=`<div class="meta-cell"><div class="meta-cell-label">Evidence needed</div><div class="meta-cell-val">${esc(item.evidence)}</div></div>`;
+    pcc+=`</div>`;
+  }
+
+  return`<div class="rcard"><div class="rcard-top"><span class="rcard-cat">${esc(catLabel)}</span>
+  <div class="rcard-actions"><button class="edit-btn" onclick="toggleCmp('${item.id}')" style="${inCmp?'background:var(--accent-light);color:var(--accent);border-color:var(--accent)':''}">${inCmp?'✓ Compare':'+ Compare'}</button><button class="edit-btn" onclick="openEdit('${item.id}')">Edit</button></div></div>
+  <div class="rcard-title">${esc(item.name||"Untitled")}</div>
+  ${item.model?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">${esc(item.model)}</div>`:''}
+  ${item.notes?`<div class="rcard-desc">${esc(item.notes)}</div>`:''}
+  <div class="rcard-tags"><span class="tag ${stClass}">${item.status||'Researching'}</span><span class="tag">${esc(u.name)}</span>${item.score?`<span class="tag">Score ${item.score}/5</span>`:''}</div>
+  ${specs}${pcc}
+  ${item.link?`<div style="font-size:12px;margin-bottom:6px"><a href="${esc(item.link)}" target="_blank" rel="noopener">↗ Source Link</a></div>`:''}
+  ${item.pdfName?`<div style="margin-bottom:6px"><span class="pdf-badge">📄 ${esc(item.pdfName)}</span></div>`:''}
+  <div class="rcard-bottom"><span>Updated ${ago(item.updatedAt||item.createdAt||0)} ago</span>
+  <button class="vote-btn ${voted?'voted':''}" onclick="vote('${item.id}')">▲ ${votes.length}</button></div></div>`;
 }
 
-function renderCard(item) {
-  const cat = getCat(item.category);
-  const author = getTeam(item.author);
-  const votes = item.votes || [];
-  const hasVoted = votes.includes(state.currentUser);
-  const isNew = (Date.now() - (item.updatedAt || item.createdAt || 0)) < 3600000;
-  const statusClass = "status-" + (item.status||"researching").toLowerCase();
-  let specsHtml = "";
-  cat.fields.forEach((f, i) => { const val = item.specs?.[i]; if (val) specsHtml += `<div><span class="spec-label">${f}:</span> <span class="spec-val">${esc(val)}</span></div>`; });
-  const notes = item.notes ? (item.notes.length > 120 ? esc(item.notes.slice(0,120))+"…" : esc(item.notes)) : "";
-  return `<div class="comp-card ${statusClass} fade-in" onclick="openEdit('${item.id}')">
-    ${isNew ? '<div class="new-dot"></div>' : ''}
-    <div class="card-top"><h4>${esc(item.name||"Untitled")}</h4><span class="badge" style="background:${STATUS_COLORS[item.status]}">${item.status}</span></div>
-    ${item.model ? `<div class="card-model">${esc(item.model)}</div>` : ''}
-    ${specsHtml ? `<div class="card-specs">${specsHtml}</div>` : ''}
-    ${notes ? `<div class="card-notes">${notes}</div>` : ''}
-    ${item.link ? `<a class="card-link" href="${esc(item.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Source Link</a>` : ''}
-    <div class="card-footer">
-      <div class="card-author">${author ? `<div class="author-avatar" style="background:${author.color}">${author.name[0]}</div>` : ''}<span>${author?.name||"Unknown"}</span></div>
-      <button class="vote-btn ${hasVoted?'voted':'unvoted'}" onclick="event.stopPropagation();toggleVote('${item.id}')">▲ ${votes.length}</button>
-    </div></div>`;
+function renderSide(){
+  const side=document.getElementById("side-col");if(!OK){side.innerHTML="";return}
+  let h="";
+  // Compare
+  h+=`<div class="side-section"><div class="side-hdr">Compare</div><div class="side-title">Comparison Box</div><div class="compare-box"><div class="compare-header"><span>${S.cmpList.length} items</span><span style="cursor:pointer;color:var(--danger);font-size:11px" onclick="S.cmpList=[];renderAll()">Clear</span></div>`;
+  if(!S.cmpList.length) h+=`<div class="compare-empty">Click "+ Compare" on cards</div>`;
+  else S.cmpList.forEach(id=>{const it=S.items[id];if(it)h+=`<div class="compare-slot"><span class="name">${esc(it.name)}</span><button class="remove" onclick="rmCmp('${id}')">✕</button></div>`});
+  h+=`</div>`;
+  if(S.cmpList.length>=2)h+=`<button class="btn-compare" onclick="openCmp()">Compare ${S.cmpList.length} Components</button>`;
+  h+=`</div>`;
+  // Summary
+  h+=`<div class="side-section"><div class="side-hdr">Daily Summary</div><div class="side-title">Today's Progress</div><div class="summary-box">${buildSummary()}</div></div>`;
+  // Activity
+  h+=`<div class="side-section"><div class="side-hdr">Activity Log</div><div class="side-title">Recent Updates</div>${renderActivity()}</div>`;
+  side.innerHTML=h;
 }
 
-function renderCompare() {
-  const cat = getCat(state.activeCategory);
-  const candidates = state.items.filter(i => i.category === state.activeCategory && i.status !== "Rejected");
-  if (candidates.length < 2) return `<div style="padding:24px;text-align:center;color:var(--text-sec);font-size:13px">Add at least 2 non-rejected components to compare.</div>`;
-  let header = `<th>Spec</th>` + candidates.map(c => `<th>${esc(c.name)}<br><span class="badge" style="background:${STATUS_COLORS[c.status]};margin-top:4px">${c.status}</span></th>`).join("");
-  const rows = ["Model", ...cat.fields, "Votes"];
-  let body = rows.map((field, fi) => {
-    let cells = `<td>${field}</td>`;
-    candidates.forEach(c => {
-      let val;
-      if (field==="Model") val = c.model||"—"; else if (field==="Votes") val = `▲ ${(c.votes||[]).length}`; else val = c.specs?.[fi-1]||"—";
-      cells += `<td>${esc(val)}</td>`;
+function buildSummary(){
+  const arr=itemsArr();const today=new Date();today.setHours(0,0,0,0);const ts=today.getTime();
+  const todayN=arr.filter(i=>(i.updatedAt||i.createdAt||0)>=ts).length;
+  const bySt={};arr.forEach(i=>{bySt[i.status]=(bySt[i.status]||0)+1});
+  const byCat={};arr.forEach(i=>{byCat[i.category]=(byCat[i.category]||0)+1});
+  const top=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  let s=`<strong>${todayN}</strong> entries updated today. <strong>${arr.length}</strong> total across <strong>${Object.keys(byCat).length}</strong> categories. `;
+  if(bySt.Selected)s+=`<strong>${bySt.Selected}</strong> selected. `;
+  if(top.length)s+=`Top: ${top.map(([c,n])=>`<strong>${c}</strong> (${n})`).join(", ")}.`;
+  if(!arr.length)s="No research yet. Click <strong>+ Add Research</strong> to start.";
+  return s;
+}
+
+function renderActivity(){
+  const arr=itemsArr().sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)).slice(0,12);
+  if(!arr.length)return`<div style="padding:16px;text-align:center;font-size:12px;color:var(--text3)">No activity</div>`;
+  const cols=["#1b5e8a","#d4a017","#1a7a5a","#c0392b","#6d28d9","#0891b2"];
+  return arr.map((it,i)=>{const u=getUser(it.author);const a=(it.updatedAt||0)>(it.createdAt||0)?"updated":"added";
+    return`<div class="activity-item"><span class="act-dot" style="background:${cols[i%cols.length]}"></span><div class="act-text"><strong>${esc(u.name)}</strong> ${a} <strong>${esc(it.name)}</strong> in ${esc(it.category)}</div><span class="act-time">${ago(it.updatedAt||it.createdAt||0)}</span></div>`;
+  }).join("");
+}
+
+// ── Compare ──
+function toggleCmp(id){const i=S.cmpList.indexOf(id);if(i>=0)S.cmpList.splice(i,1);else S.cmpList.push(id);renderAll()}
+function rmCmp(id){S.cmpList=S.cmpList.filter(x=>x!==id);renderAll()}
+function openCmp(){
+  const items=S.cmpList.map(id=>S.items[id]).filter(Boolean);if(items.length<2)return;
+  const cols=items.length+1;
+  const allF=new Set();items.forEach(i=>{(FIELDS[i.category]||[]).forEach(f=>allF.add(f))});
+  const rows=["Category","Model","Status","Score",...allF,"Pros","Cons","Votes"];
+
+  let g=`<div class="cmp-grid" style="grid-template-columns:180px repeat(${items.length},1fr)">`;
+  g+=`<div class="cmp-cell hdr">Specification</div>${items.map(i=>`<div class="cmp-cell hdr">${esc(i.name)}</div>`).join("")}`;
+  rows.forEach(f=>{
+    g+=`<div class="cmp-cell label">${f}</div>`;
+    items.forEach(i=>{
+      let v="—";
+      if(f==="Category")v=(i.category==="Other"&&i.customType)?i.customType:i.category;
+      else if(f==="Model")v=i.model||"—";
+      else if(f==="Status")v=i.status||"—";
+      else if(f==="Score")v=i.score?i.score+"/5":"—";
+      else if(f==="Pros")v=i.pros||"—";
+      else if(f==="Cons")v=i.cons||"—";
+      else if(f==="Votes")v="▲ "+(i.votes||[]).length;
+      else{const cf=FIELDS[i.category]||[];const idx=cf.indexOf(f);if(idx>=0&&i.specs?.[idx])v=i.specs[idx]}
+      g+=`<div class="cmp-cell">${esc(v)}</div>`;
     });
-    return `<tr>${cells}</tr>`;
-  }).join("");
-  return `<table class="compare-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+  });
+  g+=`</div>`;
+
+  const topVote=items.reduce((a,b)=>((b.votes||[]).length>(a.votes||[]).length)?b:a,items[0]);
+  if((topVote.votes||[]).length>0)g+=`<div class="cmp-winner">Most voted: <strong>${esc(topVote.name)}</strong> with ${(topVote.votes||[]).length} vote(s)</div>`;
+
+  document.getElementById("cmp-body").innerHTML=g;
+  document.getElementById("cmp-overlay").style.display="flex";
+}
+function closeCompare(){document.getElementById("cmp-overlay").style.display="none"}
+
+// ── Vote ──
+function vote(id){const it=S.items[id];if(!it)return;const v=it.votes||[];it.votes=v.includes(S.user)?v.filter(x=>x!==S.user):[...v,S.user];it.updatedAt=Date.now();saveItems();renderAll()}
+
+// ── Modal ──
+function openAdd(){
+  if(!S.user){alert("Select your name first (top-right). Click '+ Add yourself' if new.");return}
+  document.getElementById("modal-title").textContent="Add Research";renderForm(null);document.getElementById("modal").style.display="flex";
+}
+function openEdit(id){const it=S.items[id];if(!it)return;document.getElementById("modal-title").textContent="Edit Research";renderForm({...it,id});document.getElementById("modal").style.display="flex"}
+function closeModal(){document.getElementById("modal").style.display="none";curPdf=null}
+
+let curPdf=null;
+function renderForm(item){
+  const body=document.getElementById("modal-body");
+  const catOpts=CATEGORIES.map(c=>`<option value="${c}" ${(item?.category||"")=== c?'selected':''}>${c}</option>`).join("");
+  const stOpts=STATUS_OPTS.map(s=>`<option value="${s}" ${(item?.status||'Researching')===s?'selected':''}>${s}</option>`).join("");
+  const scOpts=[1,2,3,4,5].map(n=>`<option value="${n}" ${(item?.score||"")=== String(n)?'selected':''}>${n}/5</option>`).join("");
+  const curCat=item?.category||CATEGORIES[0];
+  const fields=FIELDS[curCat]||[];
+  const showOther=curCat==="Other";
+  let specH=fields.map((f,i)=>`<div class="form-group"><label class="form-label">${f}</label><input class="form-input" id="spec-${i}" value="${esc(item?.specs?.[i]||'')}"></div>`).join("");
+
+  body.innerHTML=`
+  <div class="form-row"><div class="form-group"><label class="form-label">Component Name</label><input class="form-input" id="f-name" placeholder="e.g. Pixhawk 6C" value="${esc(item?.name||'')}"></div>
+  <div class="form-group"><label class="form-label">Model / Part #</label><input class="form-input" id="f-model" placeholder="e.g. HolyBro PH6C" value="${esc(item?.model||'')}"></div></div>
+  <div class="form-row"><div class="form-group"><label class="form-label">Category</label><select class="form-select" id="f-cat" onchange="onCatChange()">${catOpts}</select><div id="other-type-wrap" ${showOther?'':'style="display:none"'}><input class="form-input other-type-input" id="f-custom-type" placeholder="Specify type..." value="${esc(item?.customType||'')}"></div></div>
+  <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status">${stOpts}</select></div></div>
+  <div class="form-row"><div class="form-group"><label class="form-label">Score</label><select class="form-select" id="f-score"><option value="">—</option>${scOpts}</select></div>
+  <div class="form-group"><label class="form-label">Source Link</label><input class="form-input" id="f-link" placeholder="https://..." value="${esc(item?.link||'')}"></div></div>
+  <div id="spec-fields">${fields.length?`<div class="form-label" style="margin-bottom:4px">Specifications</div><div class="form-row">${specH}</div>`:''}</div>
+  <div class="form-group"><label class="form-label">Description / Notes</label><textarea class="form-textarea" id="f-notes" placeholder="What is this component?">${esc(item?.notes||'')}</textarea></div>
+  <div class="form-row"><div class="form-group"><label class="form-label">Pros</label><textarea class="form-textarea" id="f-pros" placeholder="Advantages...">${esc(item?.pros||'')}</textarea></div>
+  <div class="form-group"><label class="form-label">Cons / Risks</label><textarea class="form-textarea" id="f-cons" placeholder="Disadvantages...">${esc(item?.cons||'')}</textarea></div></div>
+  <div class="form-group"><label class="form-label">Evidence Needed</label><input class="form-input" id="f-evidence" placeholder="What needs to be verified?" value="${esc(item?.evidence||'')}"></div>
+  <div class="form-label" style="margin-bottom:4px">Attach PDF</div>
+  <div class="pdf-upload-area" onclick="document.getElementById('pdf-input').click()">
+    <input type="file" id="pdf-input" accept=".pdf" onchange="handlePdf(event)">📄 Click to upload a PDF datasheet
+    ${item?.pdfName?`<div class="pdf-file-name">Current: ${esc(item.pdfName)}</div>`:''}<div class="pdf-file-name" id="pdf-name-display"></div></div>
+  <div class="form-actions"><button class="btn-save" onclick="saveForm('${item?.id||''}')">${item?'Save Changes':'Add Research'}</button>
+  ${item?`<button class="btn-delete" onclick="delItem('${item.id}')">Delete</button>`:''}</div>`;
+}
+function onCatChange(){
+  const cat=document.getElementById("f-cat").value;
+  document.getElementById("other-type-wrap").style.display=cat==="Other"?"":"none";
+  const fields=FIELDS[cat]||[];const c=document.getElementById("spec-fields");
+  if(!fields.length){c.innerHTML="";return}
+  let h=`<div class="form-label" style="margin-bottom:4px">Specifications</div><div class="form-row">${fields.map((f,i)=>`<div class="form-group"><label class="form-label">${f}</label><input class="form-input" id="spec-${i}" value=""></div>`).join("")}</div>`;
+  c.innerHTML=h;
+}
+function handlePdf(e){const f=e.target.files[0];if(!f)return;if(f.size>5*1024*1024){alert("PDF must be under 5MB.");return}const r=new FileReader();r.onload=()=>{curPdf={name:f.name,data:r.result};document.getElementById("pdf-name-display").textContent="Selected: "+f.name};r.readAsDataURL(f)}
+function saveForm(eid){
+  const cat=document.getElementById("f-cat").value;const fields=FIELDS[cat]||[];
+  const specs=fields.map((_,i)=>{const el=document.getElementById(`spec-${i}`);return el?el.value.trim():""});
+  const data={name:document.getElementById("f-name").value.trim(),model:document.getElementById("f-model").value.trim(),category:cat,customType:cat==="Other"?document.getElementById("f-custom-type").value.trim():"",status:document.getElementById("f-status").value,score:document.getElementById("f-score").value,link:document.getElementById("f-link").value.trim(),notes:document.getElementById("f-notes").value.trim(),pros:document.getElementById("f-pros").value.trim(),cons:document.getElementById("f-cons").value.trim(),evidence:document.getElementById("f-evidence").value.trim(),specs,author:S.user};
+  if(!data.name){alert("Name required.");return}
+  if(curPdf){data.pdfName=curPdf.name;data.pdfData=curPdf.data}
+  const now=Date.now();
+  if(eid&&S.items[eid]){const ex=S.items[eid];if(!data.pdfName&&ex.pdfName){data.pdfName=ex.pdfName;data.pdfData=ex.pdfData}S.items[eid]={...ex,...data,updatedAt:now}}
+  else{const id=gid();S.items[id]={...data,id,createdAt:now,updatedAt:now,votes:[]}}
+  saveItems();closeModal();renderAll();
+}
+function delItem(id){if(!confirm("Delete?"))return;delete S.items[id];S.cmpList=S.cmpList.filter(x=>x!==id);saveItems();closeModal();renderAll()}
+
+// ── Discussion Board ──
+function renderDisc(){
+  const main=document.getElementById("disc-main");
+  const side=document.getElementById("disc-side");
+  const topics=Object.entries(S.disc).sort((a,b)=>{const aM=Math.max(...Object.values(a[1].messages||{}).map(m=>m.ts||0),a[1].createdAt||0);const bM=Math.max(...Object.values(b[1].messages||{}).map(m=>m.ts||0),b[1].createdAt||0);return bM-aM});
+
+  let h=`<div class="section-hdr"><div><div class="section-tag">Team Discussion</div><div class="section-title">Discussion Board</div></div><span style="font-size:12px;color:var(--text3)">${topics.length} topics</span></div>`;
+  h+=`<div class="disc-new-row"><input class="disc-new-input" id="new-topic-input" placeholder="Start a new discussion topic..."><button class="disc-new-btn" onclick="addTopic()">Create Topic</button></div>`;
+  h+=`<div class="disc-list">`;
+  if(!topics.length)h+=`<div class="empty-state" style="padding:40px"><div class="icon">💬</div><div style="font-size:14px;font-weight:600;color:var(--text)">No discussions yet</div><div style="font-size:13px;margin-top:4px">Start a topic above.</div></div>`;
+  topics.forEach(([tid,topic])=>{
+    const msgs=Object.values(topic.messages||{}).sort((a,b)=>a.ts-b.ts);
+    h+=`<div class="disc-topic" id="topic-${tid}"><div class="disc-topic-hdr" onclick="toggleTopic('${tid}')"><span>💬 ${esc(topic.title)}</span><span class="disc-topic-count">${msgs.length} message${msgs.length!==1?'s':''} · by ${esc(getUser(topic.author).name)}</span></div><div class="disc-topic-body">`;
+    msgs.forEach(m=>{h+=`<div class="disc-msg"><span class="disc-msg-author">${esc(getUser(m.author).name)}</span><span class="disc-msg-time">${ago(m.ts)} ago</span><div class="disc-msg-text">${esc(m.text)}</div></div>`});
+    h+=`<div class="disc-input-row"><input class="disc-input" id="msg-${tid}" placeholder="Write a comment..."><button class="disc-send" onclick="addMsg('${tid}')">Send</button></div></div></div>`;
+  });
+  h+=`</div>`;
+  main.innerHTML=h;
+
+  // Side: recent discussion activity
+  const allMsgs=[];
+  Object.entries(S.disc).forEach(([tid,t])=>{Object.values(t.messages||{}).forEach(m=>{allMsgs.push({...m,topicTitle:t.title})})});
+  allMsgs.sort((a,b)=>b.ts-a.ts);
+  let sh=`<div class="side-section"><div class="side-hdr">Recent Comments</div><div class="side-title">Discussion Activity</div>`;
+  if(!allMsgs.length)sh+=`<div style="padding:16px;text-align:center;font-size:12px;color:var(--text3)">No comments yet</div>`;
+  else allMsgs.slice(0,15).forEach(m=>{sh+=`<div class="activity-item"><span class="act-dot" style="background:var(--accent)"></span><div class="act-text"><strong>${esc(getUser(m.author).name)}</strong> in <strong>${esc(m.topicTitle)}</strong><div style="color:var(--text3);margin-top:1px">${esc(m.text.length>60?m.text.slice(0,60)+'...':m.text)}</div></div><span class="act-time">${ago(m.ts)}</span></div>`});
+  sh+=`</div>`;
+  side.innerHTML=sh;
+}
+function toggleTopic(tid){document.getElementById("topic-"+tid)?.classList.toggle("open")}
+function addTopic(){
+  if(!S.user){alert("Select your name first.");return}
+  const inp=document.getElementById("new-topic-input");const title=inp.value.trim();if(!title)return;
+  const id=gid();S.disc[id]={title,author:S.user,createdAt:Date.now(),messages:{}};
+  saveDisc();inp.value="";renderDisc();
+}
+function addMsg(tid){
+  if(!S.user){alert("Select your name first.");return}
+  const inp=document.getElementById("msg-"+tid);const text=inp.value.trim();if(!text)return;
+  if(!S.disc[tid].messages)S.disc[tid].messages={};
+  S.disc[tid].messages[gid()]={text,author:S.user,ts:Date.now()};
+  saveDisc();inp.value="";renderDisc();
+  // Re-open the topic
+  setTimeout(()=>{document.getElementById("topic-"+tid)?.classList.add("open")},50);
 }
 
-function renderActivity() {
-  const recent = [...state.items].sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)).slice(0,15);
-  if (!recent.length) return `<div style="padding:24px;text-align:center;color:var(--text-sec);font-size:13px">No activity yet. Select a category and start adding components!</div>`;
-  return recent.map(item => {
-    const author = getTeam(item.author); const cat = getCat(item.category);
-    const ago = formatAgo(item.updatedAt||item.createdAt||0);
-    const action = (item.updatedAt||0) > (item.createdAt||0) ? "updated" : "added";
-    return `<div class="activity-item">
-      <div class="activity-avatar" style="background:${author?.color||'#666'}">${author?.name?.[0]||'?'}</div>
-      <div class="activity-text"><div class="main-line"><strong>${author?.name||'Unknown'}</strong> ${action} <strong>${esc(item.name)}</strong></div>
-      <div class="sub-line">${cat?.name||''} · ${ago}</div></div>
-      <span class="badge" style="background:${STATUS_COLORS[item.status]}">${item.status}</span></div>`;
-  }).join("");
-}
-
-// ─── Actions ───
-function switchView(v) { state.view = v; render(); }
-function onSearch(v) { state.search = v; renderMain(); }
-
-function toggleVote(itemId) {
-  const item = state.items.find(i => i.id === itemId);
-  if (!item) return;
-  const votes = item.votes || [];
-  item.votes = votes.includes(state.currentUser) ? votes.filter(v => v !== state.currentUser) : [...votes, state.currentUser];
-  item.updatedAt = Date.now();
-  saveData(); render();
-}
-
-function openAdd() {
-  document.getElementById("modal-title").textContent = "Add Component";
-  renderForm(null);
-  document.getElementById("modal").style.display = "flex";
-}
-
-function openEdit(id) {
-  const item = state.items.find(i => i.id === id);
-  if (!item) return;
-  document.getElementById("modal-title").textContent = "Edit Component";
-  renderForm(item);
-  document.getElementById("modal").style.display = "flex";
-}
-
-function closeModal() { document.getElementById("modal").style.display = "none"; }
-
-function renderForm(item) {
-  const cat = getCat(state.activeCategory);
-  const body = document.getElementById("modal-body");
-  const teamOpts = TEAM.map(t => `<option value="${t.id}" ${(item?.author||state.currentUser)===t.id?'selected':''}>${t.name} (${t.role})</option>`).join("");
-  const statusOpts = STATUS_OPTS.map(s => `<option value="${s}" ${(item?.status||'Researching')===s?'selected':''}>${s}</option>`).join("");
-  let specFields = cat.fields.map((f, i) => `<div class="form-group"><label class="form-label">${f}</label><input class="form-input" id="spec-${i}" value="${esc(item?.specs?.[i]||'')}"></div>`).join("");
-  body.innerHTML = `
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Component Name</label><input class="form-input" id="f-name" placeholder="e.g. Pixhawk 6C" value="${esc(item?.name||'')}"></div>
-      <div class="form-group"><label class="form-label">Model / Part Number</label><input class="form-input" id="f-model" placeholder="e.g. HolyBro PH6C" value="${esc(item?.model||'')}"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Added By</label><select class="form-select" id="f-author">${teamOpts}</select></div>
-      <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status">${statusOpts}</select></div>
-    </div>
-    <label class="form-label">Specifications</label>
-    <div class="form-row">${specFields}</div>
-    <div class="form-group"><label class="form-label">Source Link (URL)</label><input class="form-input" id="f-link" placeholder="https://..." value="${esc(item?.link||'')}"></div>
-    <div class="form-group"><label class="form-label">Notes / Rationale</label><textarea class="form-textarea" id="f-notes" placeholder="Why this component? Pros/cons, compatibility notes...">${esc(item?.notes||'')}</textarea></div>
-    <div class="form-actions">
-      <button class="btn-save" onclick="saveForm('${item?.id||''}')">${item?'Save Changes':'Add Component'}</button>
-      ${item ? `<button class="btn-delete" onclick="deleteItem('${item.id}')">Delete</button>` : ''}
-    </div>`;
-}
-
-function saveForm(existingId) {
-  const cat = getCat(state.activeCategory);
-  const specs = cat.fields.map((_,i) => document.getElementById(`spec-${i}`).value.trim());
-  const data = {
-    name: document.getElementById("f-name").value.trim(),
-    model: document.getElementById("f-model").value.trim(),
-    author: document.getElementById("f-author").value,
-    status: document.getElementById("f-status").value,
-    specs,
-    link: document.getElementById("f-link").value.trim(),
-    notes: document.getElementById("f-notes").value.trim(),
-  };
-  if (!data.name) { alert("Component name is required."); return; }
-  const now = Date.now();
-  if (existingId) {
-    const idx = state.items.findIndex(i => i.id === existingId);
-    if (idx >= 0) state.items[idx] = { ...state.items[idx], ...data, updatedAt: now };
-  } else {
-    state.items.push({ ...data, id: genId(), category: state.activeCategory, createdAt: now, updatedAt: now, votes: [] });
-  }
-  saveData(); closeModal(); render();
-}
-
-function deleteItem(id) {
-  if (!confirm("Delete this entry?")) return;
-  state.items = state.items.filter(i => i.id !== id);
-  saveData(); closeModal(); render();
-}
-
-function esc(s) { if (!s) return ""; const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
-
-// ─── Init ───
-updateConnBadge();
-initFirebaseListener();
-render();
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+// ── Init ──
+renderRoles();init();renderAll();
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeCompare()}});
 </script>
 </body>
 </html>
